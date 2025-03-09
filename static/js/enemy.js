@@ -2,7 +2,7 @@ class Enemy {
     constructor(canvasWidth, canvasHeight, enemyImage, scaleFactor = 1) {
         // Thuộc tính cơ bản - tăng kích thước kẻ địch
         this.baseRadius = 25; // Tăng từ 20 lên 25
-        this.baseSpeed = 1.70;
+        this.baseSpeed = 1.50;
         this.baseWidth = 50;  // Tăng từ 40 lên 50
         this.baseHeight = 50; // Tăng từ 40 lên 50
         
