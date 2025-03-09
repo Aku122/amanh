@@ -1,6 +1,11 @@
 
 from http.server import BaseHTTPRequestHandler
-from main import app
+import sys
+import os
+
+# Thêm thư mục gốc vào đường dẫn
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from api.main import app
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
