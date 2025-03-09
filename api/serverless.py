@@ -1,24 +1,30 @@
 
-from flask import Flask
+from flask import Flask, Request
 from api.main import app
 
-# Handler cho serverless function của Vercel
-def handler(event, context):
+# Hàm handler cho Vercel Serverless Functions
+def handler(request):
     """
     Hàm xử lý cho Vercel Functions.
-    
-    Trả về response từ Flask app dưới dạng Lambda response.
+    Nhận HTTP request và trả về HTTP response.
     """
-    # Lấy đường dẫn từ event
-    path = event.get('path', '/')
+    method = request.get('method', 'GET')
+    path = request.get('path', '/')
+    headers = request.get('headers', {})
+    body = request.get('body', '')
     
-    # Giả lập request đến Flask app
+    # Chuyển đổi WSGI request
     with app.test_client() as client:
-        response = client.get(path)
+        response = client.open(
+            path,
+            method=method,
+            headers=headers,
+            data=body
+        )
         
-        # Trả về response theo định dạng Vercel functions
+        # Trả về response theo định dạng Vercel Functions
         return {
             'statusCode': response.status_code,
             'headers': dict(response.headers),
-            'body': response.data.decode('utf-8')
+            'body': response.get_data(as_text=True)
         }
