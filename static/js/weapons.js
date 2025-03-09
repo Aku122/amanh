@@ -2,7 +2,7 @@
 class Weapon {
     constructor(game) {
         this.bullets = [];
-        this.fireRate = 300; // 300
+        this.fireRate = 280; // 300
         this.lastShot = 0;
         this.bulletSpeed = 10;
         this.bulletImage = game ? game.assets.bullet : null;
@@ -54,7 +54,7 @@ class Weapon {
                 this.bulletType = 'spread';
                 this.spreadCount = 2;
                 this.bulletDamage = 30;
-                this.fireRate = 280; //280
+                this.fireRate = 260; //280
                 break;
             case 3:
                 this.bulletType = 'explosive';
