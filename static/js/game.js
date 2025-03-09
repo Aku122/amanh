@@ -1025,14 +1025,14 @@ class Game {
         const numObstacles = Math.max(3, Math.floor((1 + this.currentWave * 1.5) * baseFactor));
         
         // Tăng vùng an toàn quanh người chơi
-        const playerSafeZone = isMobile ? 150 : 130;
+        const playerSafeZone = isMobile ? 100 : 80;
         
         // Điều chỉnh kích thước chướng ngại vật
         const minObstacleSize = isMobile ? 50 : 40;
         const maxObstacleSize = isMobile ? 70 : 60;
         
         // Đảm bảo khoảng cách tối thiểu giữa các chướng ngại vật
-        const minDistanceBetweenObstacles = isMobile ? 80 : 60;
+        const minDistanceBetweenObstacles = isMobile ? 60 : 40;
 
         // Chỉ sử dụng hình ảnh baccu.png cho chướng ngại vật
         let obstacleImages = [];
