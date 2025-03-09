@@ -32,6 +32,8 @@ class handler(BaseHTTPRequestHandler):
             'REQUEST_METHOD': self.command,
             'PATH_INFO': self.path,
             'QUERY_STRING': '',
+            # In ra log để debug
+            'wsgi.debug': f"Processing path: {self.path}",
             'SERVER_PROTOCOL': self.protocol_version,
             'SERVER_NAME': 'vercel',
             'SERVER_PORT': '443',

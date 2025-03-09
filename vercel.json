@@ -16,6 +16,10 @@
   ],
   "routes": [
     {
+      "src": "/static/assets/list",
+      "dest": "/api/serverless.py"
+    },
+    {
       "src": "/static/(.*)",
       "dest": "/static/$1"
     },

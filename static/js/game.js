@@ -173,6 +173,17 @@ class Game {
             fetch('/static/assets/list')
                 .then(response => {
                     console.log('Fetched assets list:', response);
+                    if (!response.ok) {
+                        console.warn('Could not fetch assets list, using fallback enemies');
+                        // Fallback với một số hình ảnh quái cố định
+                        return Promise.resolve([
+                            'bookmanghen.png', 
+                            'booknghienrang.png', 
+                            'bookngucoc.png',
+                            'hiamanhkinhhoang.png', 
+                            'satnhanhangloat.png'
+                        ]);
+                    }
                     return response.json();
                 })
                 .then(files => {
