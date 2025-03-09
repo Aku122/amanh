@@ -1,6 +1,6 @@
 
 from http.server import BaseHTTPRequestHandler
-from api.main import app
+from main import app
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
