@@ -130,7 +130,12 @@ class Controls {
         const dx = touchX - this.joystickCenterX;
         const dy = touchY - this.joystickCenterY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const maxRadius = 50; // Khoảng cách tối đa thumb có thể di chuyển từ trung tâm
+        
+        // Lấy kích thước của joystick để tính bán kính tối đa
+        const joystick = document.getElementById('moveJoystick');
+        const joystickRect = joystick.getBoundingClientRect();
+        const joystickRadius = joystickRect.width / 2;
+        const maxRadius = joystickRadius * 0.7; // 70% bán kính của joystick
         
         // Giới hạn trong bán kính
         let limitedDistance = Math.min(distance, maxRadius);
@@ -147,7 +152,7 @@ class Controls {
         this.moveAngle = angle;
         this.moveIntensity = limitedDistance / maxRadius;
         
-        const deadzone = 0.2; // Giá trị chết (20%)
+        const deadzone = 0.15; // Giảm giá trị chết xuống 15% để nhạy hơn
         if (this.moveIntensity > deadzone) {
             // Kiểu MOBA - di chuyển theo hướng joystick
             this.keys.left = dx < -maxRadius * deadzone;

@@ -1,12 +1,21 @@
 class Enemy {
-    constructor(canvasWidth, canvasHeight, enemyImage) {
-        this.radius = 15;
-        this.speed = 2;
+    constructor(canvasWidth, canvasHeight, enemyImage, scaleFactor = 1) {
+        // Thuộc tính cơ bản - tăng kích thước kẻ địch
+        this.baseRadius = 25; // Tăng từ 20 lên 25
+        this.baseSpeed = 2;
+        this.baseWidth = 50;  // Tăng từ 40 lên 50
+        this.baseHeight = 50; // Tăng từ 40 lên 50
+        
+        // Áp dụng tỉ lệ
+        this.radius = this.baseRadius * scaleFactor;
+        this.speed = this.baseSpeed * scaleFactor;
+        this.width = this.baseWidth * scaleFactor;  // width of enemy sprite
+        this.height = this.baseHeight * scaleFactor; // height of enemy sprite
+        
         this.health = 100;
         this.active = true;
         this.image = enemyImage;
-        this.width = 30;  // width of enemy sprite
-        this.height = 30; // height of enemy sprite
+        this.scaleFactor = scaleFactor;
 
         // Spawn enemy outside the canvas
         const side = Math.floor(Math.random() * 4);

@@ -12,6 +12,7 @@ html, body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    touch-action: none; /* Prevents unwanted scrolling on mobile */
 }
 
 /* Màn hình bắt đầu */
@@ -92,11 +93,14 @@ html, body {
 
 .game-wrapper {
     display: none; /* Ẩn khi chưa bắt đầu */
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     padding: 0;
     margin: 0;
     max-width: 100%;
+    max-height: calc(100% - 10px); /* Trừ đi một chút để không bị overflow */
+    position: relative;
+    overflow: hidden;
 }
 
 .container {
@@ -104,10 +108,13 @@ html, body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
     padding: 0;
+    margin: 0;
     max-width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 #gameCanvas {
@@ -116,6 +123,9 @@ html, body {
     height: 100%;
     display: block;
     box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    object-fit: contain; /* Đảm bảo hiển thị đầy đủ nội dung */
+    max-width: 100%; /* Xóa padding để canvas lấp đầy không gian */
+    max-height: 100%;
 }
 
 #score {
@@ -126,12 +136,12 @@ html, body {
 
 #mobileControls {
     position: fixed;
-    bottom: 20px;
+    bottom: 10px;
     left: 0;
     right: 0;
     display: flex;
     justify-content: space-between;
-    padding: 20px;
+    padding: 10px;
     z-index: 1001; /* Tăng z-index để hiển thị trên tất cả các phần tử khác */
     pointer-events: none; /* Để không chặn game canvas */
 }
@@ -244,22 +254,88 @@ html, body {
     }
     
     .stat-item {
-        font-size: 14px;
+        font-size: 18px; /* Tăng kích thước font */
+        margin: 0 5px;
     }
     
     .game-stats {
         flex-wrap: nowrap;
         overflow-x: auto;
-        padding: 5px;
+        padding: 10px; /* Tăng padding */
+        justify-content: center;
+        background-color: rgba(20, 0, 0, 0.8); /* Nền tối hơn để dễ đọc */
     }
     
     .game-title {
-        font-size: 2em;
+        font-size: 2.5em; /* Tăng kích thước tiêu đề */
     }
     
     .start-button {
-        padding: 10px 20px;
-        font-size: 1.2em;
+        padding: 20px 30px; /* Tăng kích thước nút */
+        font-size: 1.6em;
+    }
+    
+    .joystick {
+        width: 150px; /* Tăng kích thước joystick */
+        height: 150px;
+        opacity: 0.8; /* Tăng độ rõ nét */
+    }
+    
+    .joystick-thumb {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .fullscreen-button {
+        width: 70px; /* Tăng kích thước nút toàn màn hình */
+        height: 70px;
+        font-size: 28px;
+    }
+    
+    /* Thông báo sóng và hồi máu lớn hơn trên mobile */
+    .wave-message {
+        font-size: 30px;
+        padding: 25px 35px;
+        background-color: rgba(0, 0, 0, 0.9); /* Nền tối hơn để dễ đọc */
+    }
+    
+    .heal-message {
+        font-size: 24px;
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+    
+    /* Điều chỉnh nút trong màn hình game over */
+    .game-over-btn {
+        padding: 20px;
+        font-size: 20px;
+    }
+}
+
+/* Thêm media query cho điện thoại nằm ngang */
+@media (max-width: 1024px) and (orientation: landscape) {
+    .game-stats {
+        padding: 5px;
+    }
+    
+    .stat-item {
+        font-size: 14px;
+    }
+    
+    .joystick {
+        width: 100px;
+        height: 100px;
+        bottom: 10px;
+    }
+    
+    .joystick-thumb {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .fullscreen-button {
+        width: 50px;
+        height: 50px;
+        top: 10px;
     }
 }
 

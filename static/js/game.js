@@ -265,34 +265,78 @@ class Game {
 
     resizeCanvas() {
         console.log('Resizing canvas for fullscreen...');
-        const isMobile = window.innerWidth < 768;
-
-        // Sử dụng toàn bộ màn hình cho canvas
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-
-        // Điều chỉnh kích thước các đối tượng trong game dựa trên kích thước màn hình
-        this.scaleFactor = isMobile ? 
-            Math.min(window.innerWidth / 1200, window.innerHeight / 800) * 0.8 : 1;
-            
-        // Cập nhật kích thước của player và kẻ địch trên mobile
-        if (isMobile && this.player) {
-            this.player.radius = 25 * this.scaleFactor;
-            this.player.speed = 4 * this.scaleFactor;
+        
+        // Lưu tỉ lệ cũ để tránh sự thay đổi khi vào/ra chế độ toàn màn hình
+        const oldScaleFactor = this.scaleFactor;
+        
+        // Lấy kích thước thực của viewport
+        const actualViewportHeight = window.innerHeight;
+        const actualViewportWidth = window.innerWidth;
+        
+        // Đặt kích thước canvas để tránh scroll
+        this.canvas.width = actualViewportWidth - 10;
+        this.canvas.height = actualViewportHeight - 20;
+        
+        // Xác định tỉ lệ thiết bị
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        
+        // Điều chỉnh tỉ lệ tham chiếu để đảm bảo hiển thị đầy đủ map
+        const referenceWidth = 900;
+        const referenceHeight = 650;
+        
+        // Tính toán tỉ lệ ngang và dọc riêng biệt
+        const widthRatio = this.canvas.width / referenceWidth;
+        const heightRatio = this.canvas.height / referenceHeight;
+        
+        // Sử dụng tỉ lệ nhỏ hơn để đảm bảo tất cả nội dung hiển thị đầy đủ
+        let baseScaleFactor = Math.min(widthRatio, heightRatio) * 0.95; // Tăng lên 95% để đảm bảo map hiển thị tốt hơn
+        
+        // Điều chỉnh cho các loại thiết bị - tăng kích thước trên mobile
+        if (isMobile) {
+            // Điện thoại ngang
+            if (window.innerWidth > window.innerHeight) {
+                baseScaleFactor = baseScaleFactor * 1.5; // Tăng từ 1.2 lên 1.5
+            }
+            // Điện thoại dọc
+            else {
+                baseScaleFactor = baseScaleFactor * 1.8; // Tăng từ 1.4 lên 1.8
+            }
+        } else {
+            // PC
+            baseScaleFactor = baseScaleFactor * 1.05;
         }
-
+        
+        // Giữ nguyên tỉ lệ khi chuyển đổi giữa toàn màn hình và bình thường
+        // Chỉ cập nhật scaleFactor nếu là lần đầu tiên vào trò chơi hoặc thay đổi kích thước cửa sổ không phải do fullscreen
+        if (!oldScaleFactor || (!this.lastFullscreenState && !document.fullscreenElement) || 
+            (this.lastFullscreenState && document.fullscreenElement)) {
+            this.scaleFactor = baseScaleFactor;
+        }
+        
+        // Lưu trạng thái fullscreen hiện tại để so sánh lần sau
+        this.lastFullscreenState = !!document.fullscreenElement;
+        
         // Hiển thị wrapper khi ở chế độ toàn màn hình
         const gameWrapper = document.querySelector('.game-wrapper');
         if (gameWrapper && document.fullscreenElement) {
             gameWrapper.style.display = 'block';
         }
         
-        // Luôn hiển thị nút điều khiển khi thay đổi kích thước hoặc vào toàn màn hình
+        // Luôn hiển thị nút điều khiển
         const mobileControls = document.getElementById('mobileControls');
         if (mobileControls) {
+            // Mở rộng kích thước joystick trên mobile
+            const moveJoystick = document.getElementById('moveJoystick');
+            if (moveJoystick) {
+                const joystickSize = Math.min(150 * this.scaleFactor, window.innerWidth * 0.25);
+                moveJoystick.style.width = `${joystickSize}px`;
+                moveJoystick.style.height = `${joystickSize}px`;
+            }
+            
+            // Hiển thị nút điều khiển
             mobileControls.style.display = 'flex';
         }
-
+        
         console.log(`Using scale factor: ${this.scaleFactor} for ${isMobile ? 'mobile' : 'desktop'}`);
     }
 
@@ -319,9 +363,9 @@ class Game {
             console.log(`Selected boss image: ${bossImage.src}`);
         }
 
-        // Tạo boss mới với cấp độ tương ứng
+        // Tạo boss mới với cấp độ tương ứng, truyền thêm scaleFactor
         const bossLevel = Math.ceil(this.currentWave / 5);
-        this.boss = new Boss(this.canvas.width, this.canvas.height, bossImage, bossLevel);
+        this.boss = new Boss(this.canvas.width, this.canvas.height, bossImage, bossLevel, this.scaleFactor);
 
         // Cung cấp thêm các ảnh hiệu ứng cho boss
         if (this.effectImages && this.effectImages.length > 0) {
@@ -332,7 +376,7 @@ class Game {
         this.boss.health = 500 + (this.currentWave - 1) * 200;
         this.boss.maxHealth = this.boss.health;
         this.boss.bulletDamage = 15 + (this.currentWave - 1) * 5;
-        this.boss.speed = 1.5 + (this.currentWave - 1) * 0.2;
+        // Tốc độ cơ bản đã được nhân với scaleFactor trong constructor
 
         // Hiển thị thông báo boss wave kiểu kinh dị
         this.showWaveMessage(`ÁC QUỶ CẤP ${bossLevel} XUẤT HIỆN`);
@@ -421,7 +465,8 @@ class Game {
         if (now - this.lastEnemySpawn >= this.enemySpawnRate && this.assets.enemies.length > 0) {
             // Choose random enemy image
             const randomEnemyImg = this.assets.enemies[Math.floor(Math.random() * this.assets.enemies.length)];
-            this.enemies.push(new Enemy(this.canvas.width, this.canvas.height, randomEnemyImg));
+            // Truyền scaleFactor khi tạo enemy mới
+            this.enemies.push(new Enemy(this.canvas.width, this.canvas.height, randomEnemyImg, this.scaleFactor));
             this.lastEnemySpawn = now;
         }
     }

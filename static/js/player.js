@@ -2,16 +2,37 @@ class Player {
     constructor(x, y, playerImage, game) {
         this.x = x;
         this.y = y;
-        this.radius = 20;
-        this.speed = 3;
+        this.baseRadius = 30; // Tăng base radius từ 25 lên 30
+        this.baseSpeed = 3;   // Base speed
         this.weapon = new Weapon(game);
         this.angle = 0;
         this.image = playerImage;
-        this.width = 40;  // width of the player sprite
-        this.height = 40; // height of the player sprite
-        this.health = 100; // Add health
+        this.baseWidth = 60;  // Tăng base width từ 50 lên 60
+        this.baseHeight = 60; // Tăng base height từ 50 lên 60
+        this.health = 100;
         this.isAlive = true;
         this.game = game; // Store reference to game
+        
+        // Khởi tạo với giá trị mặc định
+        this.radius = this.baseRadius;
+        this.width = this.baseWidth;
+        this.height = this.baseHeight;
+        this.speed = this.baseSpeed;
+        
+        // Áp dụng tỉ lệ nếu có
+        if (game && game.scaleFactor) {
+            this.applyScaling(game.scaleFactor);
+        }
+    }
+    
+    // Thêm phương thức mới để áp dụng tỉ lệ
+    applyScaling(scaleFactor) {
+        // Không thay đổi vị trí x, y vì chúng sẽ được tính toán dựa trên canvas
+        // Áp dụng tỉ lệ cho các thuộc tính khác
+        this.radius = this.baseRadius * scaleFactor;
+        this.speed = this.baseSpeed * scaleFactor;
+        this.width = this.baseWidth * scaleFactor;
+        this.height = this.baseHeight * scaleFactor;
     }
 
     update(controls, canvas, game) { 

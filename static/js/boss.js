@@ -198,24 +198,33 @@ class BossBullet {
 }
 
 class Boss {
-    constructor(canvasWidth, canvasHeight, bossImage, level = 1) {
+    constructor(canvasWidth, canvasHeight, bossImage, level = 1, scaleFactor = 1) {
         this.x = canvasWidth / 2;
         this.y = canvasHeight / 3;
-        this.radius = 40;
-        this.speed = 1.5 + (level - 1) * 0.3;
+        
+        // Thuộc tính cơ bản - tăng kích thước boss
+        this.baseRadius = 60;    // Tăng từ 50 lên 60
+        this.baseWidth = 120;    // Tăng từ 100 lên 120
+        this.baseHeight = 120;   // Tăng từ 100 lên 120
+        this.baseSpeed = 1.5 + (level - 1) * 0.3;
+        
+        // Áp dụng tỉ lệ
+        this.radius = this.baseRadius * scaleFactor;
+        this.width = this.baseWidth * scaleFactor;
+        this.height = this.baseHeight * scaleFactor;
+        this.speed = this.baseSpeed * scaleFactor;
+        
         this.baseHealth = 500;
         this.health = this.baseHealth + (level - 1) * 300;
         this.maxHealth = this.health;
         this.active = true;
         this.image = bossImage;
-        this.width = 80;  // width of boss sprite
-        this.height = 80; // height of boss sprite
         this.bullets = [];
         this.lastShot = 0;
         this.fireRate = Math.max(500, 1000 - (level - 1) * 100); // milliseconds between shots
         this.attackPattern = 0;
         this.attackCooldown = 0;
-        this.bulletSpeed = 3 + (level - 1) * 0.5;
+        this.bulletSpeed = (3 + (level - 1) * 0.5) * scaleFactor;
         this.bulletDamage = 10 + (level - 1) * 5;
         this.level = level;
         this.attackPhase = 0;
@@ -228,6 +237,7 @@ class Boss {
         this.effectImages = null; // Sẽ được thiết lập từ Game
         this.auraOpacity = 0;
         this.auraDirection = 0.01;
+        this.scaleFactor = scaleFactor;
     }
 
     update(playerX, playerY, canvas) {
