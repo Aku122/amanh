@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+    <title>Nỗi Ám Ảnh Kinh Hoàng</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Màn hình bắt đầu game -->
+    <div id="startScreen" class="start-screen">
+        <div class="start-content">
+            <h1 class="game-title">Nỗi Ám Ảnh Kinh Hoàng</h1>
+            <p class="game-description">Đối mặt với những nỗi sợ hãi sâu thẳm nhất của bạn. Liệu bạn có sống sót được không?</p>
+            <button id="startButton" class="start-button">BẮT ĐẦU</button>
+        </div>
+    </div>
+
+    <div class="container game-wrapper">
+        <div class="game-header" style="display: none">
+            <div id="healMessage" class="heal-message"></div>
+            <div class="game-stats" style="display: none">
+                <div id="score" class="stat-item">Linh hồn: <span id="scoreValue">0</span></div>
+                <div id="wave" class="stat-item">Ám ảnh: <span id="waveValue">1</span></div>
+                <div id="weapon" class="stat-item">Vũ khí: <span id="weaponValue">Thường</span></div>
+                <div id="health" class="stat-item">Sinh lực: <span id="healthValue">100</span></div>
+            </div>
+            <div id="waveMessage" class="wave-message"></div>
+        </div>
+
+        <div class="game-container">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <!-- Mobile Controls - nút di chuyển kiểu MOBA và nút toàn màn hình -->
+        <div id="mobileControls">
+            <div id="moveJoystick" class="joystick mobile-control">
+                <div class="joystick-thumb"></div>
+            </div>
+            <button id="fullscreenButton" class="fullscreen-button">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Xử lý toàn màn hình cho mobile
+        document.addEventListener('DOMContentLoaded', function() {
+            const fullscreenButton = document.getElementById('fullscreenButton');
+            if (fullscreenButton) {
+                fullscreenButton.addEventListener('click', toggleFullScreen);
+            }
+            
+            function toggleFullScreen() {
+                if (!document.fullscreenElement) {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen();
+                    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+                        document.documentElement.webkitRequestFullscreen();
+                    } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+                        document.documentElement.msRequestFullscreen();
+                    }
+                    fullscreenButton.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) { /* Safari */
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { /* IE11 */
+                        document.msExitFullscreen();
+                    }
+                    fullscreenButton.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            }
+        });
+    </script>
+</body>
+
+    <script src="{{ url_for('static', filename='js/controls.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/weapons.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/enemy.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/boss.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+</body>
+</html>

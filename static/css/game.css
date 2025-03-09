@@ -1,0 +1,358 @@
+html, body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    height: 100%;
+    width: 100%;
+    font-family: 'Arial', sans-serif;
+    position: fixed;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Màn hình bắt đầu */
+.start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    background-image: url('../assets/noiamanhkinhhoangv2.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.start-content {
+    text-align: center;
+    padding: 20px;
+    max-width: 90%;
+    animation: pulse 3s infinite alternate;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.9; }
+    100% { transform: scale(1.05); opacity: 1; }
+}
+
+.game-title {
+    font-size: 3em;
+    color: #000000;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+    animation: flicker 4s infinite;
+}
+
+@keyframes flicker {
+    0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+    }
+    20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+        opacity: 0.4;
+        text-shadow: none;
+    }
+}
+
+.game-description {
+    font-size: 1.2em;
+    color: #aaa;
+    margin-bottom: 30px;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.start-button {
+    background-color: #500;
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.5em;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.start-button:hover {
+    background-color: #900;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+}
+
+.game-wrapper {
+    display: none; /* Ẩn khi chưa bắt đầu */
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+    max-width: 100%;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    padding: 0;
+    max-width: 100%;
+}
+
+#gameCanvas {
+    background-color: #000;
+    width: 100%;
+    height: 100%;
+    display: block;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+#score {
+    font-size: 24px;
+    color: #ff3333;
+    margin-bottom: 20px;
+}
+
+#mobileControls {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    z-index: 1001; /* Tăng z-index để hiển thị trên tất cả các phần tử khác */
+    pointer-events: none; /* Để không chặn game canvas */
+}
+
+.mobile-control {
+    opacity: 0.7;
+    pointer-events: auto; /* Cho phép tương tác với joystick */
+}
+
+.joystick {
+    width: 150px;
+    height: 150px;
+    background-color: rgba(100, 0, 0, 0.3);
+    border-radius: 50%;
+    position: relative;
+    border: 2px solid rgba(255, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.joystick-thumb {
+    position: absolute;
+    width: 70px;
+    height: 70px;
+    background-color: rgba(200, 0, 0, 0.7);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.9);
+    transition: transform 0.1s ease-out;
+    border: 1px solid rgba(255, 0, 0, 0.8);
+}
+
+#moveJoystick {
+    bottom: 20px;
+    left: 5%;
+    transform: translateX(0%);
+}
+
+.fullscreen-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background-color: rgba(100, 0, 0, 0.5);
+    border: 2px solid rgba(255, 0, 0, 0.5);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    pointer-events: auto;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+}
+
+.fullscreen-button:active {
+    background-color: rgba(150, 0, 0, 0.7);
+    transform: scale(0.95);
+}
+
+.game-header {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    position: absolute;
+    top: 0;
+    z-index: 10;
+}
+
+.game-stats {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    background-color: rgba(20, 0, 0, 0.7);
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    border: 1px solid rgba(100, 0, 0, 0.8);
+}
+
+.stat-item {
+    color: #ff9999;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 10px;
+    text-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
+}
+
+.game-container {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    .game-container {
+        width: 100%;
+        height: 100%;
+    }
+    
+    .stat-item {
+        font-size: 14px;
+    }
+    
+    .game-stats {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 5px;
+    }
+    
+    .game-title {
+        font-size: 2em;
+    }
+    
+    .start-button {
+        padding: 10px 20px;
+        font-size: 1.2em;
+    }
+}
+
+.wave-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ff0000;
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 15px 25px;
+    border-radius: 10px;
+    font-size: 24px;
+    z-index: 10;
+    display: none;
+    opacity: 0;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    text-transform: uppercase;
+    font-weight: bold;
+    border: 2px solid rgba(100, 0, 0, 0.8);
+    text-shadow: 0 0 5px #ff0000;
+    transition: opacity 0.5s ease;
+    animation: pulseBorder 2s infinite;
+}
+
+@keyframes pulseBorder {
+    0% { border-color: rgba(100, 0, 0, 0.8); }
+    50% { border-color: rgba(255, 0, 0, 0.8); }
+    100% { border-color: rgba(100, 0, 0, 0.8); }
+}
+
+.heal-message {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ff3333;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 18px;
+    z-index: 10;
+    display: none;
+    opacity: 0;
+    text-shadow: 0 0 8px rgba(255, 0, 0, 0.8);
+    font-weight: bold;
+    transition: opacity 0.5s ease;
+    border: 1px solid rgba(100, 0, 0, 0.8);
+}
+
+#wave {
+    font-size: 20px;
+    color: #ff6666;
+    margin-top: 5px;
+}
+
+/* Hiệu ứng game over */
+.death-effect {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(100, 0, 0, 0.3);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    animation: bloodPulse 3s infinite;
+}
+
+@keyframes bloodPulse {
+    0% { background-color: rgba(100, 0, 0, 0.3); }
+    50% { background-color: rgba(180, 0, 0, 0.5); }
+    100% { background-color: rgba(100, 0, 0, 0.3); }
+}
+
+.death-fragment {
+    position: absolute;
+    transform-origin: center;
+    opacity: 0.8;
+    animation: flyAway 2s forwards;
+    pointer-events: none;
+}
+
+@keyframes flyAway {
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) rotate(var(--r)) scale(0.2);
+        opacity: 0;
+    }
+}
