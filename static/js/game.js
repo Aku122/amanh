@@ -342,7 +342,7 @@ class Game {
 
     updateDifficulty() {
         // Tăng độ khó theo wave
-        this.enemySpawnRate = Math.max(300, 1000 - this.currentWave * 50);
+        this.enemySpawnRate = Math.max(300, 1000 - this.currentWave * 25);
         this.enemiesPerWave = 10 + (this.currentWave - 1) * 5;
     }
 
@@ -350,6 +350,7 @@ class Game {
         console.log(`Starting boss wave at wave ${this.currentWave}`);
         this.isBossWave = true;
         this.bossDefeated = false;
+        this.obstacles = [];
 
         // Xóa tất cả kẻ địch còn lại để tập trung vào boss
         this.enemies = [];
@@ -445,7 +446,7 @@ class Game {
 
                 // Hồi máu sau khi hoàn thành wave thường với thông báo kiểu kinh dị
                 this.player.heal(100);
-                this.showHealMessage("SINH LỰC HỒI PHỤC ĐẦY ĐỦ");
+                this.showHealMessage("Nguyễn Văn Đũ");
 
                 // Hiển thị thông báo hoàn thành wave
                 if (this.currentWave % 5 === 0) {
@@ -493,10 +494,35 @@ class Game {
                         // Đạn xuyên không bị hủy khi va chạm
                         if (bullet.type !== 'piercing') {
                             bullet.active = false;
+                        } else {
+                            // Nếu là đạn xuyên, đẩy lùi kẻ địch
+                            const knockbackForce = 3;
+                            const angle = Math.atan2(dy, dx);
+                            
+                            // Áp dụng lực đẩy
+                            enemy.x += Math.cos(angle) * knockbackForce;
+                            enemy.y += Math.sin(angle) * knockbackForce;
+                            
+                            // Tạo hiệu ứng đẩy lùi nếu có thể
+                            if (this.effectImages && this.effectImages.length > 0) {
+                                const effect = {
+                                    x: enemy.x,
+                                    y: enemy.y,
+                                    radius: enemy.radius * 0.5,
+                                    timer: 0,
+                                    maxTime: 10,
+                                    image: this.effectImages[Math.floor(Math.random() * this.effectImages.length)]
+                                };
+                                
+                                if (!this.effects) {
+                                    this.effects = [];
+                                }
+                                this.effects.push(effect);
+                            }
                         }
 
                         if (enemy.takeDamage(bullet.damage)) {
-                            this.score += 100;
+                            this.score += 0;
                             this.enemiesKilled++;
                         }
                         // Nếu đã va chạm thì thoát vòng lặp, trừ khi là đạn xuyên
@@ -521,7 +547,7 @@ class Game {
 
                         if (this.boss.takeDamage(bullet.damage)) {
                             console.log("Boss defeated!");
-                            this.score += 1000;
+                            this.score += 1;
                             this.bossDefeated = true;
                             this.waveComplete = true;
                             this.waveCooldown = 180; // 3 giây ở 60fps
@@ -819,14 +845,14 @@ class Game {
             // Vẽ text lệch một chút để tạo hiệu ứng glitch
             const offsetX = Math.random() * 4 - 2;
             const offsetY = Math.random() * 4 - 2;
-            this.ctx.fillText('LINH HỒN BIẾN MẤT', this.canvas.width/2 + offsetX, this.canvas.height/2 - 50 + offsetY);
+            this.ctx.fillText('VIẾT ÍT QUÁ VẬY??', this.canvas.width/2 + offsetX, this.canvas.height/2 - 50 + offsetY);
             this.ctx.restore();
 
             // Thông tin game over
             this.ctx.fillStyle = '#ffaaaa';
             this.ctx.font = '26px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(`Linh hồn thu được: ${this.score}`, this.canvas.width/2, this.canvas.height/2 + 20);
+            this.ctx.fillText(`Điểm: ${this.score}`, this.canvas.width/2, this.canvas.height/2 + 20);
             this.ctx.fillText(`Đã trải qua: ${this.currentWave} cơn ám ảnh`, this.canvas.width/2, this.canvas.height/2 + 60);
 
             // Nút chơi lại với hiệu ứng
@@ -844,7 +870,7 @@ class Game {
 
             this.ctx.fillStyle = '#ffffff';
             this.ctx.font = 'bold 24px Arial';
-            this.ctx.fillText('CHẤP NHẬN ĐỊNH MỆNH', this.canvas.width/2, btnY + 33);
+            this.ctx.fillText('HỈ ĐIẾU', this.canvas.width/2, btnY + 33);
 
             // Vẽ các hình ảnh nhỏ của player xung quanh (nếu đã được tạo)
             if (this.deathFragments) {
@@ -910,17 +936,17 @@ class Game {
 
         // Các thông số game với chủ đề kinh dị
         const statLabels = [
-            `Linh hồn: ${this.score}`,
-            `Cơn ám ảnh: ${this.currentWave}`,
+            `Điểm: ${this.score}`,
+            `Nỗi ám ảnh: ${this.currentWave}`,
             `Vũ khí: ${this.getWeaponNameVN()}`,
-            `Sinh lực: ${Math.floor(this.player.health)}/100`
+            `Móm: ${Math.floor(this.player.health)}/100`
         ];
 
         // Thêm dòng thông tin về tiến độ đợt hiện tại
         if (!this.isBossWave && !this.waveComplete) {
-            statLabels.push(`Đã tiêu diệt: ${this.enemiesKilled}/${this.enemiesPerWave} ám ảnh`);
+            statLabels.push(`Đã tiêu diệt: ${this.enemiesKilled}/${this.enemiesPerWave} sinh vật`);
         } else if (this.isBossWave && this.boss) {
-            statLabels.push(`Sinh lực ÁC QUỶ: ${this.boss.health}/${this.boss.maxHealth}`);
+            statLabels.push(`Máu ÁC QUỶ: ${this.boss.health}/${this.boss.maxHealth}`);
         }
 
         // Vẽ từng dòng thông tin
@@ -952,9 +978,9 @@ class Game {
         const weaponLevel = this.player ? this.player.weapon.weaponLevel : 1;
 
         const weaponNames = {
-            'normal': 'Ma quái cấp thấp',
-            'spread': 'Bùa chú tỏa rộng',
-            'explosive': 'Ngọn lửa địa ngục',
+            'normal': 'Quyền ám ảnh',
+            'spread': 'Quyền 2 đầu',
+            'explosive': 'Book lửa',
             'homing': 'Linh hồn săn mồi',
             'piercing': 'Móng vuốt ác quỷ'
         };
@@ -988,33 +1014,50 @@ class Game {
     }
 
     generateObstacles() {
-        const numObstacles = 1 + this.currentWave * 2; // Increase obstacles with wave
-        const playerSafeZone = 100; // Safe zone around player
-        const minObstacleSize = 40;
-        const maxObstacleSize = 60;
+        // Giảm số lượng chướng ngại vật trên mobile
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        const baseFactor = isMobile ? 0.7 : 1;
+        const numObstacles = Math.max(3, Math.floor((1 + this.currentWave * 1.5) * baseFactor));
+        
+        // Tăng vùng an toàn quanh người chơi
+        const playerSafeZone = isMobile ? 150 : 130;
+        
+        // Điều chỉnh kích thước chướng ngại vật
+        const minObstacleSize = isMobile ? 50 : 40;
+        const maxObstacleSize = isMobile ? 70 : 60;
+        
+        // Đảm bảo khoảng cách tối thiểu giữa các chướng ngại vật
+        const minDistanceBetweenObstacles = isMobile ? 80 : 60;
 
-        // Find baccu image in assets
-        let baccuImage = null;
+        // Chỉ sử dụng hình ảnh baccu.png cho chướng ngại vật
+        let obstacleImages = [];
         if (this.assets && this.assets.enemies) {
             for (const img of this.assets.enemies) {
                 if (img.src.includes('baccu.png')) {
-                    baccuImage = img;
-                    break;
+                    obstacleImages.push(img);
                 }
             }
         }
+        
+        // Nếu không tìm thấy hình ảnh baccu.png, sử dụng hình ảnh mặc định đầu tiên
+        if (obstacleImages.length === 0 && this.assets && this.assets.enemies && this.assets.enemies.length > 0) {
+            obstacleImages.push(this.assets.enemies[0]);
+        }
+
+        // Danh sách lưu các chướng ngại vật đã tạo
+        const createdObstacles = [];
 
         for (let i = 0; i < numObstacles; i++) {
             let x, y, size;
             let validPosition = false;
 
-            // Try to find a valid position that's not too close to the player
-            for (let attempts = 0; attempts < 10; attempts++) {
-                x = Math.random() * (this.canvas.width - maxObstacleSize) + minObstacleSize;
-                y = Math.random() * (this.canvas.height - maxObstacleSize) + minObstacleSize;
+            // Cố gắng tìm vị trí phù hợp
+            for (let attempts = 0; attempts < 15; attempts++) {
+                x = Math.random() * (this.canvas.width - maxObstacleSize * 1.5) + maxObstacleSize * 0.5;
+                y = Math.random() * (this.canvas.height - maxObstacleSize * 1.5) + maxObstacleSize * 0.5;
                 size = Math.random() * (maxObstacleSize - minObstacleSize) + minObstacleSize;
 
-                // Calculate distance to player (center of the canvas at initialization)
+                // Tính khoảng cách đến người chơi
                 const playerX = this.player ? this.player.x : this.canvas.width / 2;
                 const playerY = this.player ? this.player.y : this.canvas.height / 2;
                 const distToPlayer = Math.sqrt(
@@ -1022,20 +1065,40 @@ class Game {
                     Math.pow(y - playerY, 2)
                 );
 
-                // If obstacle is far enough from player, accept it
-                if (distToPlayer > playerSafeZone) {
+                // Kiểm tra khoảng cách với các chướng ngại vật khác
+                let tooClose = false;
+                for (const obstacle of createdObstacles) {
+                    const distToObstacle = Math.sqrt(
+                        Math.pow(x - obstacle.x, 2) + 
+                        Math.pow(y - obstacle.y, 2)
+                    );
+                    if (distToObstacle < obstacle.size + size + minDistanceBetweenObstacles) {
+                        tooClose = true;
+                        break;
+                    }
+                }
+
+                // Nếu vị trí hợp lệ
+                if (distToPlayer > playerSafeZone && !tooClose) {
                     validPosition = true;
                     break;
                 }
             }
 
             if (validPosition) {
-                this.obstacles.push({ 
+                // Chọn hình ảnh ngẫu nhiên cho chướng ngại vật
+                const randomImage = obstacleImages.length > 0 ? 
+                    obstacleImages[Math.floor(Math.random() * obstacleImages.length)] : null;
+                
+                const obstacle = { 
                     x, 
                     y, 
                     size,
-                    image: baccuImage 
-                });
+                    image: randomImage
+                };
+                
+                createdObstacles.push(obstacle);
+                this.obstacles.push(obstacle);
             }
         }
     }
@@ -1060,22 +1123,175 @@ class Game {
     }
 
     checkObstacleCollision(x, y, radius) {
+        const result = this.checkObstacleCollisionWithInfo(x, y, radius);
+        return result.collision;
+    }
+    
+    // Phương thức mới trả về cả thông tin về chướng ngại vật va chạm
+    checkObstacleCollisionWithInfo(x, y, radius) {
+        // Điều chỉnh giảm bán kính va chạm theo tỷ lệ thiết bị
+        const adjustedRadius = radius * 0.8; // Giảm bán kính va chạm xuống 80%
+        
+        // Tạo một buffer nhỏ cho phép lọt vào khe hở nhỏ giữa các vật thể
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        const buffer = isMobile ? 5 : 2; // Buffer lớn hơn cho mobile
+        
         for (const obstacle of this.obstacles) {
-            // Distance check between circle (player) and rectangle (obstacle)
-            const distX = Math.abs(x - obstacle.x - obstacle.size/2);
-            const distY = Math.abs(y - obstacle.y - obstacle.size/2);
-
-            if (distX > (obstacle.size/2 + radius)) continue;
-            if (distY > (obstacle.size/2 + radius)) continue;
-
-            if (distX <= (obstacle.size/2)) return true;
-            if (distY <= (obstacle.size/2)) return true;
-
-            const dx = distX - obstacle.size/2;
-            const dy = distY - obstacle.size/2;
-            return (dx*dx + dy*dy <= radius*radius);
+            // Điều chỉnh kích thước va chạm của chướng ngại vật
+            const adjustedSize = obstacle.size * 0.85; // Giảm kích thước box va chạm xuống 85%
+            
+            // Tính toán trung tâm của chướng ngại vật
+            const obstacleX = obstacle.x + obstacle.size/2;
+            const obstacleY = obstacle.y + obstacle.size/2;
+            
+            // Tính khoảng cách từ nhân vật đến trung tâm chướng ngại vật
+            const dx = Math.abs(x - obstacleX);
+            const dy = Math.abs(y - obstacleY);
+            
+            // Khoảng cách tối đa cho phép (nửa kích thước chướng ngại vật + bán kính nhân vật)
+            const collisionX = adjustedSize/2 + adjustedRadius - buffer;
+            const collisionY = adjustedSize/2 + adjustedRadius - buffer;
+            
+            // Kiểm tra va chạm trực tiếp (hình chữ nhật)
+            if (dx <= collisionX && dy <= collisionY) {
+                return {collision: true, obstacle: obstacle};
+            }
+            
+            // Kiểm tra va chạm ở góc (hình tròn)
+            if (dx > adjustedSize/2 && dy > adjustedSize/2) {
+                const cornerDx = dx - adjustedSize/2;
+                const cornerDy = dy - adjustedSize/2;
+                if (cornerDx * cornerDx + cornerDy * cornerDy <= adjustedRadius * adjustedRadius) {
+                    return {collision: true, obstacle: obstacle};
+                }
+            }
         }
-        return false;
+        return {collision: false, obstacle: null};
+    }
+    
+    // Phương thức phá hủy chướng ngại vật
+    destroyObstacle(obstacle) {
+        if (!obstacle) return;
+        
+        // Tìm và xóa chướng ngại vật khỏi mảng
+        const index = this.obstacles.indexOf(obstacle);
+        if (index !== -1) {
+            this.obstacles.splice(index, 1);
+        }
+    }
+    
+    // Tạo hiệu ứng phá hủy chướng ngại vật
+    createObstacleDestroyEffect(obstacle) {
+        if (!obstacle) return;
+        
+        // Tính toán vị trí trung tâm của chướng ngại vật
+        const centerX = obstacle.x + obstacle.size/2;
+        const centerY = obstacle.y + obstacle.size/2;
+        
+        // Tạo các mảnh vỡ
+        const fragmentCount = 8;
+        for (let i = 0; i < fragmentCount; i++) {
+            const angle = (i / fragmentCount) * Math.PI * 2;
+            const distance = Math.random() * 20 + 10;
+            const fragmentX = centerX + Math.cos(angle) * distance;
+            const fragmentY = centerY + Math.sin(angle) * distance;
+            
+            // Thêm hiệu ứng mảnh vỡ
+            const fragment = {
+                x: fragmentX,
+                y: fragmentY,
+                radius: obstacle.size / 4,
+                timer: 0,
+                maxTime: 20,
+                image: obstacle.image,
+                rotation: Math.random() * Math.PI * 2,
+                scale: Math.random() * 0.5 + 0.5
+            };
+            
+            if (!this.effects) {
+                this.effects = [];
+            }
+            
+            this.effects.push(fragment);
+        }
+        
+        // Thêm hiệu ứng nổ
+        const explosion = {
+            x: centerX,
+            y: centerY,
+            radius: obstacle.size,
+            timer: 0,
+            maxTime: 30,
+            image: this.effectImages && this.effectImages.length > 0 ? 
+                this.effectImages[Math.floor(Math.random() * this.effectImages.length)] : null
+        };
+        
+        this.effects.push(explosion);
+    }
+    
+    // Phương thức vẽ tiến trình phá vỡ chướng ngại vật
+    drawObstacleBreakingProgress(obstacle, progress) {
+        if (!obstacle) return;
+        
+        // Vẽ hiệu ứng nứt vỡ xung quanh chướng ngại vật
+        this.ctx.save();
+        
+        // Tính toán vị trí trung tâm của chướng ngại vật
+        const centerX = obstacle.x + obstacle.size/2;
+        const centerY = obstacle.y + obstacle.size/2;
+        
+        // Vẽ hiệu ứng nứt vỡ
+        if (progress > 0.3) {
+            const crackCount = Math.floor(progress * 10);
+            this.ctx.strokeStyle = '#ff0000';
+            this.ctx.lineWidth = 2;
+            
+            for (let i = 0; i < crackCount; i++) {
+                const angle = (i / crackCount) * Math.PI * 2;
+                const length = obstacle.size/2 * progress;
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(centerX, centerY);
+                this.ctx.lineTo(
+                    centerX + Math.cos(angle) * length,
+                    centerY + Math.sin(angle) * length
+                );
+                this.ctx.stroke();
+            }
+        }
+        
+        // Vẽ thanh tiến trình phá hủy
+        const barWidth = obstacle.size;
+        const barHeight = 6;
+        const barX = obstacle.x;
+        const barY = obstacle.y - 15;
+        
+        // Nền thanh tiến trình
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.fillRect(barX, barY, barWidth, barHeight);
+        
+        // Tiến trình
+        this.ctx.fillStyle = progress < 0.5 ? '#ffff00' : '#ff0000';
+        this.ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+        
+        this.ctx.restore();
+    }
+    
+    // Hiển thị thông báo thay đổi vũ khí
+    showWeaponChangeMessage(weaponType) {
+        const weaponNames = {
+            'normal': 'Ma quái cấp thấp',
+            'spread': 'Bùa chú tỏa rộng',
+            'explosive': 'Ngọn lửa địa ngục',
+            'homing': 'Linh hồn săn mồi',
+            'piercing': 'Móng vuốt ác quỷ'
+        };
+        
+        const weaponName = weaponNames[weaponType] || weaponType;
+        this.showWaveMessage(`Đã chuyển sang: ${weaponName}`);
+        
+        // Cập nhật UI
+        document.getElementById('weaponValue').textContent = weaponName;
     }
 
     drawBossBackground() {

@@ -3,7 +3,7 @@ class Player {
         this.x = x;
         this.y = y;
         this.baseRadius = 30; // Tăng base radius từ 25 lên 30
-        this.baseSpeed = 3;   // Base speed
+        this.baseSpeed = 2.75;   // Base speed
         this.weapon = new Weapon(game);
         this.angle = 0;
         this.image = playerImage;
@@ -18,6 +18,17 @@ class Player {
         this.width = this.baseWidth;
         this.height = this.baseHeight;
         this.speed = this.baseSpeed;
+        
+        // Thêm biến theo dõi thời gian chạm vào chướng ngại vật
+        this.obstacleContact = {
+            isInContact: false,
+            obstacle: null,
+            timer: 0,
+            breakThreshold: 60 // 60 frames ~ 1 giây để phá vỡ chướng ngại vật
+        };
+        
+        // Danh sách các loại đạn đã mở khóa
+        this.unlockedWeapons = ['normal'];
         
         // Áp dụng tỉ lệ nếu có
         if (game && game.scaleFactor) {
@@ -65,31 +76,225 @@ class Player {
     }
 
     move(dx, dy, canvas, game) {
+        if (!dx && !dy) {
+            // Nếu đang đứng yên, nhưng vẫn đang va chạm với chướng ngại vật
+            if (this.obstacleContact.isInContact && this.obstacleContact.obstacle) {
+                this.updateObstacleBreaking(game);
+            } else {
+                // Reset trạng thái va chạm nếu không di chuyển và không còn va chạm
+                this.obstacleContact.isInContact = false;
+                this.obstacleContact.obstacle = null;
+                this.obstacleContact.timer = 0;
+            }
+            return; 
+        }
+        
         const speed = this.speed;
-        const newX = this.x + dx;
-        const newY = this.y + dy;
-
-        // Keep player within canvas bounds
-        const validX = newX >= this.radius && newX <= canvas.width - this.radius;
-        const validY = newY >= this.radius && newY <= canvas.height - this.radius;
-
-        // Check obstacle collision
-        const obstacleCollision = game && game.checkObstacleCollision ? 
-            game.checkObstacleCollision(newX, this.y, this.radius) : false;
-
-        // Move on X axis if valid and no obstacle
-        if (validX && !obstacleCollision) {
-            this.x = newX;
+        
+        // Kiểm tra từng trục riêng biệt và cho phép di chuyển trượt dọc theo chướng ngại vật
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        const slideBuffer = isMobile ? 5 : 3; // Buffer lớn hơn cho mobile
+        
+        // Reset trạng thái va chạm trước khi kiểm tra lại
+        this.obstacleContact.isInContact = false;
+        
+        // Di chuyển theo trục X
+        if (dx !== 0) {
+            const newX = this.x + dx;
+            // Kiểm tra biên canvas
+            const validX = newX >= this.radius && newX <= canvas.width - this.radius;
+            
+            if (validX) {
+                // Kiểm tra va chạm chướng ngại vật trên trục X
+                const obstacleResult = game && game.checkObstacleCollision ? 
+                    game.checkObstacleCollisionWithInfo(newX, this.y, this.radius) : {collision: false, obstacle: null};
+                
+                if (!obstacleResult.collision) {
+                    this.x = newX;
+                } else {
+                    // Ghi nhận va chạm với chướng ngại vật
+                    this.handleObstacleContact(obstacleResult.obstacle, game);
+                    
+                    // Thử di chuyển lên hoặc xuống một chút để trượt dọc theo chướng ngại vật
+                    const slideUpY = this.y - slideBuffer;
+                    const slideDownY = this.y + slideBuffer;
+                    
+                    const canSlideUpResult = game.checkObstacleCollisionWithInfo(newX, slideUpY, this.radius);
+                    const canSlideDownResult = game.checkObstacleCollisionWithInfo(newX, slideDownY, this.radius);
+                    
+                    const canSlideUp = !canSlideUpResult.collision && slideUpY >= this.radius;
+                    const canSlideDown = !canSlideDownResult.collision && slideDownY <= canvas.height - this.radius;
+                    
+                    if (canSlideUp) {
+                        this.y = slideUpY;
+                        this.x = newX;
+                        this.obstacleContact.isInContact = false; // Không còn va chạm nếu trượt được
+                    } else if (canSlideDown) {
+                        this.y = slideDownY;
+                        this.x = newX;
+                        this.obstacleContact.isInContact = false; // Không còn va chạm nếu trượt được
+                    }
+                }
+            }
         }
-
-        // Check obstacle collision for Y movement separately
-        const obstacleCollisionY = game && game.checkObstacleCollision ? 
-            game.checkObstacleCollision(this.x, newY, this.radius) : false;
-
-        // Move on Y axis if valid and no obstacle
-        if (validY && !obstacleCollisionY) {
-            this.y = newY;
+        
+        // Di chuyển theo trục Y
+        if (dy !== 0) {
+            const newY = this.y + dy;
+            // Kiểm tra biên canvas
+            const validY = newY >= this.radius && newY <= canvas.height - this.radius;
+            
+            if (validY) {
+                // Kiểm tra va chạm chướng ngại vật trên trục Y
+                const obstacleResult = game && game.checkObstacleCollision ? 
+                    game.checkObstacleCollisionWithInfo(this.x, newY, this.radius) : {collision: false, obstacle: null};
+                
+                if (!obstacleResult.collision) {
+                    this.y = newY;
+                } else {
+                    // Ghi nhận va chạm với chướng ngại vật
+                    this.handleObstacleContact(obstacleResult.obstacle, game);
+                    
+                    // Thử di chuyển sang trái hoặc phải một chút để trượt dọc theo chướng ngại vật
+                    const slideLeftX = this.x - slideBuffer;
+                    const slideRightX = this.x + slideBuffer;
+                    
+                    const canSlideLeftResult = game.checkObstacleCollisionWithInfo(slideLeftX, newY, this.radius);
+                    const canSlideRightResult = game.checkObstacleCollisionWithInfo(slideRightX, newY, this.radius);
+                    
+                    const canSlideLeft = !canSlideLeftResult.collision && slideLeftX >= this.radius;
+                    const canSlideRight = !canSlideRightResult.collision && slideRightX <= canvas.width - this.radius;
+                    
+                    if (canSlideLeft) {
+                        this.x = slideLeftX;
+                        this.y = newY;
+                        this.obstacleContact.isInContact = false; // Không còn va chạm nếu trượt được
+                    } else if (canSlideRight) {
+                        this.x = slideRightX;
+                        this.y = newY;
+                        this.obstacleContact.isInContact = false; // Không còn va chạm nếu trượt được
+                    }
+                }
+            }
         }
+        
+        // Cập nhật phá vỡ chướng ngại vật nếu đang va chạm
+        if (this.obstacleContact.isInContact) {
+            this.updateObstacleBreaking(game);
+        }
+    }
+    
+    // Xử lý va chạm với chướng ngại vật
+    handleObstacleContact(obstacle, game) {
+        this.obstacleContact.isInContact = true;
+        this.obstacleContact.obstacle = obstacle;
+        
+        // Nếu va chạm với chướng ngại vật mới, reset timer
+        if (this.obstacleContact.obstacle !== obstacle) {
+            this.obstacleContact.timer = 0;
+        }
+    }
+    
+    // Cập nhật quá trình phá vỡ chướng ngại vật
+    updateObstacleBreaking(game) {
+        if (!this.obstacleContact.isInContact || !this.obstacleContact.obstacle) return;
+        
+        this.obstacleContact.timer++;
+        
+        // Tạo hiệu ứng chấn động nhẹ khi đang phá vỡ
+        if (this.obstacleContact.timer % 5 === 0) {
+            // Tạo hiệu ứng rung lắc nhẹ
+            const shakeAmount = 2;
+            this.x += (Math.random() - 0.5) * shakeAmount;
+            this.y += (Math.random() - 0.5) * shakeAmount;
+        }
+        
+        // Hiệu ứng tiến trình phá vỡ
+        if (game.drawObstacleBreakingProgress) {
+            game.drawObstacleBreakingProgress(this.obstacleContact.obstacle, this.obstacleContact.timer / this.obstacleContact.breakThreshold);
+        }
+        
+        // Khi đã va chạm đủ lâu, phá vỡ chướng ngại vật
+        if (this.obstacleContact.timer >= this.obstacleContact.breakThreshold) {
+            if (game.destroyObstacle) {
+                game.destroyObstacle(this.obstacleContact.obstacle);
+                // Thêm điểm khi phá hủy chướng ngại vật
+                game.score += 20;
+                
+                // Thêm hiệu ứng phá hủy
+                if (game.createObstacleDestroyEffect) {
+                    game.createObstacleDestroyEffect(this.obstacleContact.obstacle);
+                }
+                
+                // Reset trạng thái va chạm
+                this.obstacleContact.isInContact = false;
+                this.obstacleContact.obstacle = null;
+                this.obstacleContact.timer = 0;
+            }
+        }
+    }
+    
+    // Phương thức mới để chuyển đổi loại đạn
+    switchWeapon(weaponType) {
+        // Kiểm tra nếu đã mở khóa loại đạn này
+        if (this.unlockedWeapons.includes(weaponType)) {
+            // Lưu lại thông tin cũ
+            const oldBulletDamage = this.weapon.bulletDamage;
+            const oldFireRate = this.weapon.fireRate;
+            
+            // Thiết lập loại đạn mới
+            this.weapon.bulletType = weaponType;
+            
+            // Thiết lập các thông số phù hợp với loại đạn
+            switch(weaponType) {
+                case 'normal':
+                    this.weapon.spreadCount = 1;
+                    this.weapon.bulletDamage = 25;
+                    this.weapon.fireRate = 300;
+                    break;
+                case 'spread':
+                    this.weapon.spreadCount = 2;
+                    this.weapon.bulletDamage = 30;
+                    this.weapon.fireRate = 280;
+                    break;
+                case 'explosive':
+                    this.weapon.spreadCount = 1;
+                    this.weapon.bulletDamage = 40;
+                    this.weapon.fireRate = 350;
+                    break;
+                case 'homing':
+                    this.weapon.spreadCount = 1;
+                    this.weapon.bulletDamage = 35;
+                    this.weapon.fireRate = 250;
+                    break;
+                case 'piercing':
+                    this.weapon.spreadCount = 2;
+                    this.weapon.bulletDamage = 50;
+                    this.weapon.fireRate = 200;
+                    break;
+            }
+            
+            // Hiển thị thông báo chuyển đổi vũ khí
+            if (this.game && this.game.showWeaponChangeMessage) {
+                this.game.showWeaponChangeMessage(weaponType);
+            }
+            
+            return true;
+        }
+        return false;
+    }
+    
+    // Phương thức khi mở khóa vũ khí mới
+    unlockWeapon(weaponType) {
+        if (!this.unlockedWeapons.includes(weaponType)) {
+            this.unlockedWeapons.push(weaponType);
+            
+            // Tự động chuyển sang vũ khí mới mở khóa
+            this.switchWeapon(weaponType);
+            
+            return true;
+        }
+        return false;
     }
 
     updatePlayerAngle(controls) {
@@ -272,6 +477,20 @@ class Player {
 
     upgradeWeapon() {
         this.weapon.upgradeWeapon();
+        
+        // Mở khóa loại vũ khí mới dựa trên level
+        const weaponLevel = this.weapon.weaponLevel;
+        
+        // Mở khóa vũ khí mới dựa trên level
+        if (weaponLevel === 2 && !this.unlockedWeapons.includes('spread')) {
+            this.unlockWeapon('spread');
+        } else if (weaponLevel === 3 && !this.unlockedWeapons.includes('explosive')) {
+            this.unlockWeapon('explosive');
+        } else if (weaponLevel === 4 && !this.unlockedWeapons.includes('homing')) {
+            this.unlockWeapon('homing');
+        } else if (weaponLevel === 5 && !this.unlockedWeapons.includes('piercing')) {
+            this.unlockWeapon('piercing');
+        }
     }
 
     getWeaponInfo() {

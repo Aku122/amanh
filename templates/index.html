@@ -42,15 +42,96 @@
             <button id="fullscreenButton" class="fullscreen-button">
                 <i class="fas fa-expand"></i>
             </button>
+            <button id="weaponSwitcherButton" class="weapon-switcher">
+                <i class="fas fa-exchange-alt"></i>
+                <span class="tooltiptext">Đổi vũ khí</span>
+            </button>
+        </div>
+        
+        <!-- Menu chọn vũ khí (ẩn) -->
+        <div id="weaponMenu" class="weapon-menu" style="display: none;">
+        </div>
+        
+        <!-- Hướng dẫn điều khiển -->
+        <div id="controlsGuide" class="controls-guide">
+            <div class="controls-guide-pc">
+                <h4>Điều khiển PC:</h4>
+                <p>Di chuyển: WASD hoặc phím mũi tên</p>
+                <p>Đổi vũ khí: Phím số 1 (chuyển lần lượt qua các vũ khí)</p>
+                <p>Chạm chướng ngại vật đủ lâu sẽ phá vỡ</p>
+                <p>Ẩn/Hiện hướng dẫn: Phím H</p>
+            </div>
+            <div class="controls-guide-mobile">
+                <h4>Điều khiển Mobile:</h4>
+                <p>Di chuyển: Joystick bên trái</p>
+                <p>Đổi vũ khí: Nút <i class="fas fa-exchange-alt"></i> bên phải</p>
+                <p>Chạm chướng ngại vật đủ lâu sẽ phá vỡ</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // Xử lý toàn màn hình cho mobile
+        // Xử lý toàn màn hình cho mobile và các chức năng khác
         document.addEventListener('DOMContentLoaded', function() {
             const fullscreenButton = document.getElementById('fullscreenButton');
+            const weaponSwitcherButton = document.getElementById('weaponSwitcherButton');
+            const weaponMenu = document.getElementById('weaponMenu');
+            const weaponItems = document.querySelectorAll('.weapon-item');
+            const controlsGuide = document.getElementById('controlsGuide');
+            const controlsGuidePC = document.querySelector('.controls-guide-pc');
+            const controlsGuideMobile = document.querySelector('.controls-guide-mobile');
+            
+            // Kiểm tra thiết bị
+            const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+            
+            // Hiển thị hướng dẫn phù hợp với thiết bị
+            if (controlsGuide) {
+                if (isMobile) {
+                    controlsGuideMobile.style.display = 'block';
+                    controlsGuidePC.style.display = 'none';
+                } else {
+                    controlsGuideMobile.style.display = 'none';
+                    controlsGuidePC.style.display = 'block';
+                }
+                
+                // Hiển thị hướng dẫn sau 2 giây và tự ẩn sau 10 giây
+                setTimeout(() => {
+                    controlsGuide.style.display = 'block';
+                    setTimeout(() => {
+                        controlsGuide.style.display = 'none';
+                    }, 10000);
+                }, 2000);
+            }
+            
+            // Xử lý nút toàn màn hình
             if (fullscreenButton) {
                 fullscreenButton.addEventListener('click', toggleFullScreen);
+            }
+            
+            // Xử lý nút chuyển đổi vũ khí trên mobile
+            if (weaponSwitcherButton) {
+                weaponSwitcherButton.addEventListener('click', function() {
+                    // Lấy thông tin game và người chơi
+                    if (window.game && window.game.player) {
+                        // Lấy danh sách vũ khí đã mở khóa
+                        const unlockedWeapons = window.game.player.unlockedWeapons || ['normal'];
+                        const currentWeapon = window.game.player.weapon.bulletType;
+
+                        if (unlockedWeapons.length <= 1) {
+                            // Hiển thị thông báo nếu chỉ có một loại vũ khí
+                            window.game.showWaveMessage("Chưa có vũ khí khác để đổi");
+                            return;
+                        }
+
+                        // Tìm vũ khí tiếp theo trong danh sách
+                        const currentIndex = unlockedWeapons.indexOf(currentWeapon);
+                        const nextIndex = (currentIndex + 1) % unlockedWeapons.length;
+                        const nextWeapon = unlockedWeapons[nextIndex];
+
+                        // Chuyển đổi sang vũ khí tiếp theo
+                        window.game.player.switchWeapon(nextWeapon);
+                    }
+                });
             }
             
             function toggleFullScreen() {
