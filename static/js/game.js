@@ -295,7 +295,7 @@ class Game {
         if (isMobile) {
             // Điện thoại ngang
             if (window.innerWidth > window.innerHeight) {
-                baseScaleFactor = baseScaleFactor * 1.5; // Tăng từ 1.2 lên 1.5
+                baseScaleFactor = baseScaleFactor * 1.6; // Tăng từ 1.2 lên 1.5
             }
             // Điện thoại dọc
             else {
@@ -342,8 +342,8 @@ class Game {
 
     updateDifficulty() {
         // Tăng độ khó theo wave
-        this.enemySpawnRate = Math.max(300, 1000 - this.currentWave * 25);
-        this.enemiesPerWave = 10 + (this.currentWave - 1) * 5;
+        this.enemySpawnRate = Math.max(300, 1000 - this.currentWave * 20);
+        this.enemiesPerWave = 5 + (this.currentWave - 1) * 5;
     }
 
     startBossWave() {
@@ -377,7 +377,12 @@ class Game {
         this.boss.health = 500 + (this.currentWave - 1) * 200;
         this.boss.maxHealth = this.boss.health;
         this.boss.bulletDamage = 15 + (this.currentWave - 1) * 5;
-        // Tốc độ cơ bản đã được nhân với scaleFactor trong constructor
+        
+        // Giảm tốc độ đạn boss trên mobile
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        if (isMobile) {
+            this.boss.bulletSpeed = this.boss.bulletSpeed * 0.7; // Giảm tốc độ đạn xuống 70%
+        }
 
         // Hiển thị thông báo boss wave kiểu kinh dị
         this.showWaveMessage(`ÁC QUỶ CẤP ${bossLevel} XUẤT HIỆN`);

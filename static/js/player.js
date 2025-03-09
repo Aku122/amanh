@@ -36,14 +36,23 @@ class Player {
         }
     }
     
-    // Thêm phương thức mới để áp dụng tỉ lệ
+    // Thêm phương thức để áp dụng tỉ lệ riêng cho kích thước và tốc độ
     applyScaling(scaleFactor) {
         // Không thay đổi vị trí x, y vì chúng sẽ được tính toán dựa trên canvas
-        // Áp dụng tỉ lệ cho các thuộc tính khác
+        // Áp dụng tỉ lệ cho kích thước
         this.radius = this.baseRadius * scaleFactor;
-        this.speed = this.baseSpeed * scaleFactor;
         this.width = this.baseWidth * scaleFactor;
         this.height = this.baseHeight * scaleFactor;
+        
+        // Kiểm tra nếu là mobile thì giảm tốc độ
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        if (isMobile) {
+            // Giảm tốc độ trên mobile xuống 70% so với tỉ lệ thông thường
+            this.speed = this.baseSpeed * scaleFactor * 0.7;
+        } else {
+            // Tốc độ bình thường trên PC
+            this.speed = this.baseSpeed * scaleFactor;
+        }
     }
 
     update(controls, canvas, game) { 

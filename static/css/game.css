@@ -1,21 +1,14 @@
-html, body {
-    overflow: hidden;
+
+body, html {
     margin: 0;
     padding: 0;
-    background-color: #000;
-    height: 100%;
     width: 100%;
-    font-family: 'Arial', sans-serif;
-    position: fixed;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    touch-action: none; /* Prevents unwanted scrolling on mobile */
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #000;
 }
 
-/* Màn hình bắt đầu */
 .start-screen {
     position: fixed;
     top: 0;
@@ -23,52 +16,34 @@ html, body {
     width: 100%;
     height: 100%;
     background-color: #000;
+    background-size: cover;
+    background-position: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    background-image: url('../assets/noiamanhkinhhoangv2.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    z-index: 9999;
 }
 
 .start-content {
     text-align: center;
-    padding: 20px;
-    max-width: 90%;
-    animation: pulse 3s infinite alternate;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 0.9; }
-    100% { transform: scale(1.05); opacity: 1; }
+    padding: 30px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    border: 1px solid #500;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
 }
 
 .game-title {
     font-size: 3em;
-    color: #000000;
+    color: #ff0000;
     margin-bottom: 20px;
-    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
-    animation: flicker 4s infinite;
-}
-
-@keyframes flicker {
-    0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
-        opacity: 1;
-        text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
-    }
-    20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
-        opacity: 0.4;
-        text-shadow: none;
-    }
+    text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+    letter-spacing: 2px;
 }
 
 .game-description {
     font-size: 1.2em;
-    color: #aaa;
-    margin-bottom: 30px;
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .start-button {

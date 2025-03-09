@@ -208,11 +208,20 @@ class Boss {
         this.baseHeight = 120;   // Tăng từ 100 lên 120
         this.baseSpeed = 1.5 + (level - 1) * 0.3;
         
-        // Áp dụng tỉ lệ
+        // Áp dụng tỉ lệ cho kích thước
         this.radius = this.baseRadius * scaleFactor;
         this.width = this.baseWidth * scaleFactor;
         this.height = this.baseHeight * scaleFactor;
-        this.speed = this.baseSpeed * scaleFactor;
+        
+        // Kiểm tra nếu là mobile thì giảm tốc độ
+        const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+        if (isMobile) {
+            // Giảm tốc độ boss trên mobile xuống 60% so với tỉ lệ thông thường
+            this.speed = this.baseSpeed * scaleFactor * 0.6;
+        } else {
+            // Tốc độ bình thường trên PC
+            this.speed = this.baseSpeed * scaleFactor;
+        }
         
         this.baseHealth = 500;
         this.health = this.baseHealth + (level - 1) * 300;
